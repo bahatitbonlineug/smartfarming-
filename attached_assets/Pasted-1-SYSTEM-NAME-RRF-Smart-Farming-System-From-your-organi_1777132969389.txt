@@ -1,0 +1,141 @@
+1. SYSTEM NAME
+
+RRF Smart Farming System
+(From your organization: RRF)
+
+🚀 2. MASTER PROMPT FOR REPLIT (COPY THIS)
+Writing
+
+Build a full-stack IoT web application called "RRF Smart Farming System".
+
+The system monitors farm conditions using an ESP32 device and displays real-time data on a web dashboard.
+
+TECH STACK:
+
+Frontend: React (modern UI dashboard)
+Backend: Node.js with Express
+Database: Supabase (PostgreSQL)
+Deployment: Render (backend) and web frontend
+Communication: REST API (JSON)
+
+FEATURES:
+
+DASHBOARD PAGE:
+Display real-time sensor data:
+Temperature (°C)
+Humidity (%)
+Soil Moisture
+Light Level
+NPK values (Nitrogen, Phosphorus, Potassium)
+GPS Location (latitude & longitude)
+Use cards layout
+Auto-refresh every 5 seconds
+Clean modern UI
+BACKEND API:
+POST /sensor-data → receives data from ESP32
+GET /sensor-data → returns latest sensor data
+Store all incoming data in Supabase database
+Enable CORS
+DATABASE STRUCTURE (Supabase):
+Table: sensor_data
+id (auto)
+temperature (float)
+humidity (float)
+soil_moisture (float)
+light_level (float)
+nitrogen (int)
+phosphorus (int)
+potassium (int)
+latitude (float)
+longitude (float)
+created_at (timestamp)
+ESP32 INTEGRATION:
+ESP32 sends JSON data using HTTP POST
+Example JSON:
+{
+"temperature": 25,
+"humidity": 60,
+"soil_moisture": 400,
+"light_level": 300,
+"nitrogen": 20,
+"phosphorus": 10,
+"potassium": 5,
+"latitude": 0.3476,
+"longitude": 32.5825
+}
+FRONTEND:
+Fetch data from backend API
+Display in cards
+Show last updated time
+Handle loading and errors
+EXTRA FEATURES:
+Add simple line chart for temperature and soil moisture
+Add status indicators (e.g. "Soil Dry", "Optimal", etc.)
+Responsive design (mobile + desktop)
+PROJECT STRUCTURE:
+/client → React app
+/server → Node.js API
+Clear instructions on how to run locally and deploy
+SECURITY:
+Validate incoming data
+Use environment variables for API keys
+
+OUTPUT:
+
+Full working code (frontend + backend)
+Setup instructions
+Ready for deployment on Render and Supabase
+⚙️ 3. HOW YOUR SYSTEM WILL WORK (VERY IMPORTANT)
+🔄 Full Flow
+Sensors → ESP32 → Internet → Backend API → Database → React Dashboard
+📡 Step-by-step in real life:
+1. On the farm 🌱
+
+Your ESP32:
+
+Reads sensors:
+DHT22
+Soil sensor
+NPK sensor
+GPS
+2. ESP32 sends data 📤
+{
+  "temperature": 26,
+  "humidity": 70,
+  "soil_moisture": 350
+}
+
+→ Sent to:
+
+https://your-api.onrender.com/sensor-data
+3. Backend (Node.js) 🧠
+Receives data
+Saves to Supabase
+Makes it available via API
+4. React Dashboard ⚛️
+Fetches data every 5 seconds
+Displays:
+Temperature 🌡️
+Soil condition 🌱
+GPS 📍
+Light ☀️
+🔥 4. WHAT REPLIT WILL GENERATE
+
+After using the prompt, you’ll get:
+
+✅ Frontend:
+Dashboard UI
+Cards + charts
+Auto-refresh
+✅ Backend:
+API endpoints
+Database connection
+Data handling
+✅ Instructions:
+How to run
+How to deploy
+⚠️ 5. COMMON MISTAKES (Avoid This)
+❌ Trying to connect React directly to ESP32
+❌ Not using a backend
+❌ Sending data too fast (overload)
+❌ No device ID (important later)

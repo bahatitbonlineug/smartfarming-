@@ -1,0 +1,361 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: RRF Smart Farming System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: sensor
+    description: Sensor data operations
+  - name: device
+    description: ESP32 device connection management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /device:
+    get:
+      operationId: getDevice
+      tags: [device]
+      summary: Get device connection info
+      description: Returns the currently configured ESP32 IP and connection status
+      responses:
+        "200":
+          description: Device info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceInfo"
+
+    put:
+      operationId: updateDevice
+      tags: [device]
+      summary: Save ESP32 IP address
+      description: Saves the ESP32 IP/address and starts auto-polling
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceUpdateInput"
+      responses:
+        "200":
+          description: Device updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceInfo"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /device/poll:
+    post:
+      operationId: pollDevice
+      tags: [device]
+      summary: Manually trigger a poll from the ESP32
+      description: Immediately fetches sensor data from the stored ESP32 address and saves it
+      responses:
+        "200":
+          description: Poll successful — sensor data saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensorData"
+        "400":
+          description: No device configured or fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /device/disconnect:
+    post:
+      operationId: disconnectDevice
+      tags: [device]
+      summary: Disconnect from ESP32
+      description: Clears the stored ESP32 IP and stops auto-polling
+      responses:
+        "200":
+          description: Disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceInfo"
+
+  /sensor-data:
+    post:
+      operationId: postSensorData
+      tags: [sensor]
+      summary: Submit sensor data from ESP32
+      description: Receives sensor readings from the ESP32 device and stores them
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SensorDataInput"
+      responses:
+        "201":
+          description: Data saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensorData"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      operationId: getLatestSensorData
+      tags: [sensor]
+      summary: Get latest sensor reading
+      description: Returns the most recent sensor data entry
+      responses:
+        "200":
+          description: Latest sensor reading
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensorData"
+        "404":
+          description: No data found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sensor-data/history:
+    get:
+      operationId: getSensorHistory
+      tags: [sensor]
+      summary: Get sensor data history
+      description: Returns last N sensor readings for chart display
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: List of sensor readings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SensorData"
+
+  /sensor-data/stats:
+    get:
+      operationId: getSensorStats
+      tags: [sensor]
+      summary: Get sensor statistics summary
+      description: Returns aggregated stats (min, max, avg) for key metrics over last 24 hours
+      responses:
+        "200":
+          description: Aggregated stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensorStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    SensorDataInput:
+      type: object
+      properties:
+        temperature:
+          type: number
+          description: Temperature in Celsius
+        humidity:
+          type: number
+          description: Humidity percentage
+        soil_moisture:
+          type: number
+          description: Soil moisture raw value
+        light_level:
+          type: number
+          description: Light level raw value
+        nitrogen:
+          type: integer
+          description: Nitrogen NPK value
+        phosphorus:
+          type: integer
+          description: Phosphorus NPK value
+        potassium:
+          type: integer
+          description: Potassium NPK value
+        latitude:
+          type: number
+          description: GPS latitude
+        longitude:
+          type: number
+          description: GPS longitude
+      required:
+        - temperature
+        - humidity
+        - soil_moisture
+        - light_level
+        - nitrogen
+        - phosphorus
+        - potassium
+        - latitude
+        - longitude
+
+    SensorData:
+      type: object
+      properties:
+        id:
+          type: integer
+        temperature:
+          type: number
+        humidity:
+          type: number
+        soil_moisture:
+          type: number
+        light_level:
+          type: number
+        nitrogen:
+          type: integer
+        phosphorus:
+          type: integer
+        potassium:
+          type: integer
+        latitude:
+          type: number
+        longitude:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - temperature
+        - humidity
+        - soil_moisture
+        - light_level
+        - nitrogen
+        - phosphorus
+        - potassium
+        - latitude
+        - longitude
+        - created_at
+
+    SensorStats:
+      type: object
+      properties:
+        temperature:
+          $ref: "#/components/schemas/StatSummary"
+        humidity:
+          $ref: "#/components/schemas/StatSummary"
+        soil_moisture:
+          $ref: "#/components/schemas/StatSummary"
+        light_level:
+          $ref: "#/components/schemas/StatSummary"
+        total_readings:
+          type: integer
+        last_reading_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - temperature
+        - humidity
+        - soil_moisture
+        - light_level
+        - total_readings
+        - last_reading_at
+
+    StatSummary:
+      type: object
+      properties:
+        min:
+          type: number
+          nullable: true
+        max:
+          type: number
+          nullable: true
+        avg:
+          type: number
+          nullable: true
+      required:
+        - min
+        - max
+        - avg
+
+    DeviceInfo:
+      type: object
+      properties:
+        ip:
+          type: string
+          nullable: true
+          description: The ESP32 IP address or hostname
+        connected:
+          type: boolean
+          description: Whether the device is currently configured
+        last_polled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of last successful poll
+        last_error:
+          type: string
+          nullable: true
+          description: Last poll error message if any
+      required:
+        - ip
+        - connected
+        - last_polled_at
+        - last_error
+
+    DeviceUpdateInput:
+      type: object
+      properties:
+        ip:
+          type: string
+          description: The ESP32 IP address or hostname (e.g. 192.168.1.100)
+      required:
+        - ip
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
